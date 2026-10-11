@@ -5,7 +5,8 @@ export FULLTESTFLAG=0
 
 # check these versions before running!
 # export DEVKIT_VERSION=0.16.0-dev.104+689461e31
-export DEVKIT_VERSION=0.17.0-dev.203+073889523
+# export DEVKIT_VERSION=0.17.0-dev.203+073889523
+export DEVKIT_VERSION=0.18.0-dev.92+1e1964473
 
 export NINJA_VERSION=1.13.2
 export CMAKE_VERSION=4.3.3

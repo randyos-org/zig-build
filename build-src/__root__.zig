@@ -11,13 +11,13 @@ const zigcpp_mod = @import("zigcpp.zig");
 const env = @import("env.zig");
 const utils = @import("utils.zig");
 
-pub fn build(b: *std.Build) void {
+pub fn build(b: *std.Build) !void {
     const exotic = libs.addExoticTargetOpts(b);
     const tgtinfo = targets.getTargetDetails(b);
     const devkit = env.getDevkitInfo(b);
 
     // build config file
-    const config_zig = config.genConfigZig(b, exotic);
+    const config_zig = try config.genConfigZig(b, exotic);
 
     // build wasm2c
     const wasm2c = wasm2c_mod.buildWasm2c(b, tgtinfo);

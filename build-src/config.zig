@@ -11,9 +11,9 @@ fn cmakeInt(text: []const u8, key: []const u8) usize {
 }
 
 // version constants live in zig-src CMakeLists; parse them so nothing is hardcoded here
-fn srcVersion(b: *std.Build) std.SemanticVersion {
+fn srcVersion(b: *std.Build) !std.SemanticVersion {
     const cwd: std.Io.Dir = .cwd();
-    const text = cwd.readFileAlloc(b.graph.io, b.pathFromRoot(zig_src ++ "/CMakeLists.txt"), b.allocator, .limited(1 << 20)) catch
+    const text = cwd.readFileAlloc(b.graph.io, try b.root.joinString(b.allocator, zig_src ++ "/CMakeLists.txt"), b.allocator, .limited(1 << 20)) catch
         @panic("cannot read " ++ zig_src ++ "/CMakeLists.txt");
     return .{
         .major = cmakeInt(text, "set(ZIG_VERSION_MAJOR "),
@@ -22,12 +22,12 @@ fn srcVersion(b: *std.Build) std.SemanticVersion {
     };
 }
 
-fn resolveVersion(b: *std.Build, sv: std.SemanticVersion) []const u8 {
+fn resolveVersion(b: *std.Build, sv: std.SemanticVersion) ![]const u8 {
     if (b.option([]const u8, "version-string", "override zig version string")) |v| return v;
     const base = b.fmt("{d}.{d}.{d}", .{ sv.major, sv.minor, sv.patch });
     var code: u8 = undefined;
     const raw = b.runAllowFail(&.{
-        "git", "-C", b.pathFromRoot(zig_src), "describe", "--match", "*.*.*", "--tags", "--abbrev=9",
+        "git", "-C", try b.root.joinString(b.allocator, zig_src), "describe", "--match", "*.*.*", "--tags", "--abbrev=9",
     }, &code, .ignore) catch return base;
     const desc = std.mem.trim(u8, raw, " \r\n");
     switch (std.mem.count(u8, desc, "-")) {
@@ -45,8 +45,8 @@ fn resolveVersion(b: *std.Build, sv: std.SemanticVersion) []const u8 {
     }
 }
 
-pub fn genConfigZig(b: *std.Build, x: ExperimentalTargets) std.Build.LazyPath {
-    const version = resolveVersion(b, srcVersion(b));
+pub fn genConfigZig(b: *std.Build, x: ExperimentalTargets) !std.Build.LazyPath {
+    const version = try resolveVersion(b, try srcVersion(b));
     const content = b.fmt(
         \\pub const have_llvm = true;
         \\pub const llvm_has_m68k = {};

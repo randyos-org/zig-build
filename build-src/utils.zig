@@ -14,20 +14,12 @@ pub fn cExe(b: *std.Build, tgtinfo: TargetInfo, name: []const u8) *std.Build.Ste
     });
 }
 
-// prints `message` when this step runs; wire deps with .dependOn so it lands
-// at an exact point in the graph instead of racing other steps
+// no-op barrier step named `message` (shown in build progress); wire deps with
+// .dependOn so it lands at an exact point in the graph instead of racing other
+// steps. split-phase std.Build has no custom makeFn, so an empty WriteFile
+// stands in for a step that printed at make time.
 pub fn addAnnounce(b: *std.Build, message: []const u8) *std.Build.Step {
-    const step = b.allocator.create(std.Build.Step) catch @panic("OOM");
-    step.* = std.Build.Step.init(.{
-        .id = .custom,
-        .name = message,
-        .owner = b,
-        .makeFn = announceMake,
-    });
-    return step;
-}
-
-fn announceMake(step: *std.Build.Step, options: std.Build.Step.MakeOptions) anyerror!void {
-    _ = options;
-    std.debug.print("{s}\n", .{step.name});
+    const wf = b.addWriteFiles();
+    wf.step.name = message;
+    return &wf.step;
 }
