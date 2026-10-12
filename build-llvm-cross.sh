@@ -53,6 +53,7 @@ cmake -S "$SRC/llvm" -B "$HOST_TBLGEN" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_C_COMPILER="$ZIG;cc;-target;$ZIG_HOST_TARGET;-mcpu=$ZIG_HOST_CPU" \
   -DCMAKE_CXX_COMPILER="$ZIG;c++;-target;$ZIG_HOST_TARGET;-mcpu=$ZIG_HOST_CPU" \
+  -DCMAKE_ASM_COMPILER="$ZIG;cc;-target;$ZIG_HOST_TARGET;-mcpu=$ZIG_HOST_CPU" \
   -DCMAKE_AR="$TOOLS/ar" \
   -DCMAKE_RANLIB="$TOOLS/ranlib" \
   "${LAUNCHER[@]}" \
