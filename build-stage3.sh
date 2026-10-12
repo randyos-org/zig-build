@@ -30,7 +30,7 @@ cd "$ZIG_SRC"
   --search-prefix "${DEVKIT_WIN:-$DEVKIT}" \
   $@ \
   || exit 1
-  # "--zig-lib-dir lib" \
+  # "--zig-lib lib" \
   # --verbose-cc --verbose-link 2>&1 | tee -a "$ZIG_BUILD_LOG" \
 
 # zig-src/build.zig hardcodes the exe name "zig"; rename so plain zig stays
