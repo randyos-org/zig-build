@@ -1,6 +1,12 @@
 [submodule "zig-src"]
 	path = zig-src
-	url = https://codeberg.org/ziglang/zig.git
+	url = https://codeberg.org/emanspeaks/zig.git
 [submodule "zls"]
 	path = zls
-	url = https://github.com/zigtools/zls
+	url = https://github.com/emanspeaks/zls.git
+[submodule "powerzig"]
+	path = powerzig
+	url = https://github.com/emanspeaks/powerzig.git
+[submodule "powerzig-bootstrap"]
+	path = powerzig-bootstrap
+	url = https://github.com/emanspeaks/powerzig-bootstrap.git

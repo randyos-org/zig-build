@@ -7,7 +7,7 @@
   "settings": {
     // "zig.path": "C:/scratch/git/zig-build/devkit-0.17.0-dev.203+073889523/bin/zig.exe",
     "zig.path": "${workspaceFolder}\\bin\\stage3\\bin\\zig.exe",
-    "zig.zls.path": "${workspaceFolder}\\bin\\zls\\bin\\zls.exe",
+    // "zig.zls.path": "${workspaceFolder}\\bin\\zls\\bin\\zls.exe",
 
     "files.exclude": {
       "**/.git": true,
