@@ -8,6 +8,8 @@ echo Building stage 4...
 cd "$ZIG_SRC"
 "$ZIG_STAGE3_EXE" build \
   -p "$ZIG_STAGE4_PREFIX" \
+  -Dtarget="$ZIG_HOST_TARGET" \
+  -Dcpu="$ZIG_HOST_CPU" \
   -Dstatic-llvm \
   --search-prefix "${DEVKIT_WIN:-$DEVKIT}" \
   -Dno-lib \
@@ -18,6 +20,8 @@ cd "$ZIG_SRC"
 echo Build stage 4 complete, testing...
 if [ "$FULLTESTFLAG" -eq 1 ]; then
   "$ZIG_STAGE4_EXE" build test \
+    -Dtarget="$ZIG_HOST_TARGET" \
+    -Dcpu="$ZIG_HOST_CPU" \
     -Dstatic-llvm \
     --search-prefix "${DEVKIT_WIN:-$DEVKIT}" \
     || exit 1

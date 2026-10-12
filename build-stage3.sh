@@ -5,9 +5,15 @@
 . ./build-devkit.sh
 
 # stage 1: devkit zig builds zig1/zig2
+# every stage targets the devkit's triple, like upstream ci passes
+# -target/-mcpu to cmake's zig cc (on linux that means musl, not glibc)
 cd "$ZIGROOT"
 # "$DEVKIT_ZIG_EXE" build -p "$ZIGROOT" --verbose-cc --verbose-link 2>&1 | tee -a "$ZIG_BUILD_LOG" || exit 1
-"$DEVKIT_ZIG_EXE" build -p "$ZIGROOT" $@ || exit 1
+"$DEVKIT_ZIG_EXE" build -p "$ZIGROOT" \
+  -Dtarget="$ZIG_HOST_TARGET" \
+  -Dcpu="$ZIG_HOST_CPU" \
+  $@ \
+  || exit 1
 echo Build stage 2 complete
 
 # stage 2: zig2 builds stage3
@@ -19,11 +25,11 @@ echo Build stage 2 complete
 # NOTE: If any -Dllvm-has-* experimental target flags (m68k/csky/arc/xtensa)
 # were passed in stage 1, pass the same ones here too.
 cd "$ZIG_SRC"
-"$ZIGROOTBIN/zig2.exe" build \
+"$ZIGROOTBIN/zig2$EXE_SUFFIX" build \
   --prefix "$ZIG_STAGE3_PREFIX" \
   $ZIG_BUILD_TYPE_RELWITHDEBINFO \
-  -Dtarget=native \
-  -Dcpu=native \
+  -Dtarget="$ZIG_HOST_TARGET" \
+  -Dcpu="$ZIG_HOST_CPU" \
   -Duse-zig-libcxx \
   -Dno-lib \
   -Dstatic-llvm \

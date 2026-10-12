@@ -25,8 +25,44 @@ export ZIG_BUILD_TYPE_MINSIZEREL="-Doptimize=ReleaseSmall"
 
 # export ZIG_BUILD_TYPE="$ZIG_BUILD_TYPE_RELWITHDEBINFO"
 
+# Host toolchain target, named like upstream's devkits (zig-src/ci/*): musl on
+# linux, gnu on windows, none on macos and the BSDs. Every stage builds for this
+# triple so it matches the devkit's LLVM libs. Override ZIG_HOST_TARGET for an
+# unusual host, and set ZIG_HOST_CPU=baseline for binaries that leave this
+# machine (CI artifacts); native is fine for local use.
+detect-host-target () {
+  local arch os
+  case "$(uname -m)" in
+    x86_64|amd64) arch=x86_64;;
+    aarch64|arm64) arch=aarch64;;
+    ppc64le) arch=powerpc64le;;
+    *) arch=$(uname -m);;
+  esac
+  case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*) os=windows-gnu;;
+    Linux) os=linux-musl;;
+    Darwin) os=macos-none;;
+    FreeBSD) os=freebsd-none;;
+    NetBSD) os=netbsd-none;;
+    OpenBSD) os=openbsd-none;;
+    *) echo "unsupported host OS: $(uname -s); set ZIG_HOST_TARGET" >&2; return 1;;
+  esac
+  echo "$arch-$os"
+}
+if [ -z "$ZIG_HOST_TARGET" ]; then
+  ZIG_HOST_TARGET=$(detect-host-target) || exit 1
+fi
+export ZIG_HOST_TARGET
+export ZIG_HOST_CPU=${ZIG_HOST_CPU:-native}
+
+case "$ZIG_HOST_TARGET" in
+  *-windows-*) export DEVKIT_EXT=zip EXE_SUFFIX=.exe;;
+  *) export DEVKIT_EXT=tar.xz EXE_SUFFIX=;;
+esac
+
 # precompute paths and file names
-export DEVKIT_NAME=devkit-$DEVKIT_VERSION
+export DEVKIT_LONGNAME=zig+llvm+lld+clang-$ZIG_HOST_TARGET-$DEVKIT_VERSION
+export DEVKIT_NAME=devkit-$ZIG_HOST_TARGET-$DEVKIT_VERSION
 export CMAKE_NAME=cmake-$CMAKE_VERSION
 
 export ZIGROOT=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
@@ -102,4 +138,15 @@ safe-unzip () {
       echo "Unzip failed with a critical error code: $STATUS"
       exit $STATUS
   fi
+}
+
+# upstream ships windows devkits as .zip and everything else as .tar.xz
+extract-archive () {
+  local archive=$1
+  local dest_dir=$2
+  case "$archive" in
+    *.zip) safe-unzip "$archive" "$dest_dir";;
+    *.tar.xz) tar -xJf "$archive" -C "$dest_dir";;
+    *) echo "don't know how to extract $archive" >&2; return 1;;
+  esac
 }

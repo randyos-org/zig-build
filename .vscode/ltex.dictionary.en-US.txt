@@ -16,6 +16,7 @@ Dyld
 Eglot
 envrc
 femit
+ghcup
 GiB
 glibc
 gofmt
@@ -59,8 +60,10 @@ LLVMSPIRV
 LLVMVE
 LLVMX
 lole
+ltrimstr
 lversion
 Mbuild
+mcpu
 mklink
 mlugg
 Mroot
@@ -68,10 +71,14 @@ msvc
 MSVC
 msys
 musl
+musleabihf
 nobuiltininc
+NOHASHDIR
 nostdinc
 nostdsysteminc
 ofmt
+PowerZig
+powerzig-bootstrap
 qemu
 qemu-static
 readme
