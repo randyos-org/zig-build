@@ -45,7 +45,9 @@ fi
 
 cross_cc () { echo "$ZIG;$1;-fno-sanitize=all;-s;-target;$TARGET;-mcpu=$MCPU"; }
 
-# 1. native llvm-tblgen + clang-tblgen (only these two targets, not all of LLVM)
+# 1. native llvm-tblgen + clang-tblgen (only these two targets, not all of LLVM).
+# Same options as zig-bootstrap's host stage: its sources have unused files
+# deleted (e.g. llvm/utils/*), so anything referencing them must stay off.
 HOST_TBLGEN=$WORK/build-tblgen-host
 cmake -S "$SRC/llvm" -B "$HOST_TBLGEN" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
@@ -54,19 +56,33 @@ cmake -S "$SRC/llvm" -B "$HOST_TBLGEN" -G Ninja \
   -DCMAKE_AR="$TOOLS/ar" \
   -DCMAKE_RANLIB="$TOOLS/ranlib" \
   "${LAUNCHER[@]}" \
-  -DLLVM_ENABLE_PROJECTS=clang \
+  -DLLVM_APPEND_VC_REV=OFF \
   -DLLVM_ENABLE_BINDINGS=OFF \
   -DLLVM_ENABLE_LIBEDIT=OFF \
   -DLLVM_ENABLE_LIBPFM=OFF \
   -DLLVM_ENABLE_LIBXML2=OFF \
+  -DLLVM_ENABLE_OCAMLDOC=OFF \
+  -DLLVM_ENABLE_PLUGINS=OFF \
+  -DLLVM_ENABLE_PROJECTS="lld;clang" \
+  -DLLVM_ENABLE_Z3_SOLVER=OFF \
   -DLLVM_ENABLE_ZLIB=OFF \
   -DLLVM_ENABLE_ZSTD=OFF \
+  -DLLVM_INCLUDE_UTILS=OFF \
   -DLLVM_INCLUDE_TESTS=OFF \
   -DLLVM_INCLUDE_EXAMPLES=OFF \
   -DLLVM_INCLUDE_BENCHMARKS=OFF \
   -DLLVM_INCLUDE_DOCS=OFF \
-  -DCLANG_INCLUDE_TESTS=OFF \
+  -DLLVM_TOOL_LLVM_LTO2_BUILD=OFF \
+  -DLLVM_TOOL_LLVM_LTO_BUILD=OFF \
+  -DLLVM_TOOL_LTO_BUILD=OFF \
+  -DLLVM_TOOL_REMARKS_SHLIB_BUILD=OFF \
+  -DCLANG_BUILD_TOOLS=OFF \
   -DCLANG_INCLUDE_DOCS=OFF \
+  -DCLANG_INCLUDE_TESTS=OFF \
+  -DCLANG_TOOL_CLANG_IMPORT_TEST_BUILD=OFF \
+  -DCLANG_TOOL_CLANG_LINKER_WRAPPER_BUILD=OFF \
+  -DCLANG_TOOL_C_INDEX_TEST_BUILD=OFF \
+  -DCLANG_TOOL_LIBCLANG_BUILD=OFF \
   || exit 1
 cmake --build "$HOST_TBLGEN" --target llvm-tblgen clang-tblgen || exit 1
 

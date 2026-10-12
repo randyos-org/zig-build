@@ -8,9 +8,11 @@ checkcmake
 CMake
 cmakefail
 csky
+ddict
 devkits
 diffz
 DIRENV
+divsufsort
 Dlltool
 Dyld
 Eglot
@@ -86,6 +88,7 @@ recompiles
 riscv
 spirv
 std
+tblgen
 tgtinfo
 toolchain
 Toolchain
@@ -99,6 +102,8 @@ wasmtime
 watchos
 WINSYS32
 xtensa
+xxhash
+zdict
 zig
 Zig
 ZIG
@@ -109,3 +114,4 @@ ziglang
 zlib
 ZLib
 zstd
+zstdmt
