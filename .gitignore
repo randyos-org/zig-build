@@ -1,4 +1,6 @@
 /bin/
+# symlink to zig-src/lib created by env-setup.sh (machine-specific target)
+/lib
 /downloads/
 /devkit-*/
 /zig+llvm+lld+clang-*/
