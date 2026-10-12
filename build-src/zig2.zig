@@ -8,7 +8,7 @@ const DevkitInfo = @import("env.zig").DevkitInfo;
 
 const zig2_cflags = [_][]const u8{
     "-std=c99",
-    "-O0",
+    "-Oz",
     "-fno-sanitize=undefined",
     "-fno-stack-protector",
     "-fno-strict-aliasing",
@@ -35,7 +35,7 @@ pub fn genCrtC(b: *std.Build, zig1: *std.Build.Step.Compile, tgtinfo: TargetInfo
     gen_crt.step.dependOn(wait_on);
     gen_crt.setCwd(b.path(zig_src));
     gen_crt.addArg("lib");
-    gen_crt.addArgs(&.{ "build-obj", "-ofmt=c", "-OReleaseSmall", "--name", "compiler_rt" });
+    gen_crt.addArgs(&.{ "build-obj", "-ofmt=c", "-lc", "-OReleaseSmall", "--name", "compiler_rt" });
     const crt_c = gen_crt.addPrefixedOutputFileArg("-femit-bin=", "compiler_rt.c");
     gen_crt.addArgs(&.{ "-target", tgtinfo.triple, "-Mroot=lib/compiler_rt.zig" });
     return crt_c;
@@ -53,7 +53,6 @@ pub fn buildZig2(
     const tgt = tgtinfo.tgt;
 
     const zig2 = utils.cExe(b, tgtinfo, "zig2");
-    zig2.stack_size = utils.stack_size;
     b.installArtifact(zig2);
 
     const zig2_mod = zig2.root_module;

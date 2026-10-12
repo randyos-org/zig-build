@@ -42,6 +42,6 @@ echo Testing stage 3...
 if [ "$FULLTESTFLAG" -eq 1 ]; then
   "$ZIG_STAGE3_EXE" build test || exit 1
 else
-  "$ZIG_STAGE3_EXE" build test-std -Dskip-release -Dskip-non-native || exit 1
+  "$ZIG_STAGE3_EXE" build test-modules -Dskip-release -Dskip-non-native || exit 1
 fi
 echo Testing stage 3 complete.

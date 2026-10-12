@@ -60,7 +60,6 @@ pub fn genConfigZig(b: *std.Build, x: ExperimentalTargets) !std.Build.LazyPath {
         \\pub const enable_link_snapshots = false;
         \\pub const enable_tracy = false;
         \\pub const value_tracing = false;
-        \\pub const skip_non_native = false;
         \\pub const debug_gpa = false;
         \\pub const dev = .core;
         \\pub const io_mode: enum {{ threaded, evented }} = .threaded;

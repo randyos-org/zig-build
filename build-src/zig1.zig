@@ -6,7 +6,7 @@ const TargetInfo = @import("targets.zig").TargetInfo;
 
 const zig1_cflags = [_][]const u8{
     "-std=c99",
-    "-Os",
+    "-Oz",
     "-fno-strict-aliasing",
 };
 
