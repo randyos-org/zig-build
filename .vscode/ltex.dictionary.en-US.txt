@@ -78,9 +78,11 @@ nobuiltininc
 NOHASHDIR
 nostdinc
 nostdsysteminc
+nyumbew
 ofmt
 PowerZig
 powerzig-bootstrap
+Pwease
 qemu
 qemu-static
 readme
@@ -101,6 +103,7 @@ WASI
 wasmtime
 watchos
 WINSYS32
+Wyhash
 xtensa
 xxhash
 zdict
