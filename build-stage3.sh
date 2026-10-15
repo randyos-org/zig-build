@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 #cSpell:enableCompoundWords
+# Bootstrap a release zig (stage3) from the upstream devkit.
+# Extra arguments (e.g. -Dllvm-has-m68k) are passed to both zig builds.
 . ./common.sh
 . ./env-setup.sh
 . ./build-devkit.sh
@@ -8,7 +10,6 @@
 # every stage targets the devkit's triple, like upstream ci passes
 # -target/-mcpu to cmake's zig cc (on linux that means musl, not glibc)
 cd "$ZIGROOT"
-# "$DEVKIT_ZIG_EXE" build -p "$ZIGROOT" --verbose-cc --verbose-link 2>&1 | tee -a "$ZIG_BUILD_LOG" || exit 1
 "$DEVKIT_ZIG_EXE" build -p "$ZIGROOT" \
   -Dtarget="$ZIG_HOST_TARGET" \
   -Dcpu="$ZIG_HOST_CPU" \
@@ -36,14 +37,12 @@ cd "$ZIG_SRC"
   --search-prefix "${DEVKIT_WIN:-$DEVKIT}" \
   $@ \
   || exit 1
-  # "--zig-lib lib" \
-  # --verbose-cc --verbose-link 2>&1 | tee -a "$ZIG_BUILD_LOG" \
-
-# zig-src/build.zig hardcodes the exe name "zig"; rename so plain zig stays
-# reserved for stage 4.
-# mv -f "$ZIGROOTBIN/zig" "$ZIGROOTBIN/zig3" || exit 1
 echo Build stage 3 complete
 
+if [ "$STAGE3_TESTS" = 0 ]; then
+  echo "Skipping stage 3 tests (STAGE3_TESTS=0)"
+  exit 0
+fi
 echo Testing stage 3...
 if [ "$FULLTESTFLAG" -eq 1 ]; then
   "$ZIG_STAGE3_EXE" build test || exit 1

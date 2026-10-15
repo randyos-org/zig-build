@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #cSpell:enableCompoundWords
+# Full local build: stage3 (release), stage4 (debug), then ZLS.
 . ./common.sh
 
-# stage3: zig-only way
 ./build-stage3.sh || exit 1
 
 ./build-stage4-debug.sh || exit 1

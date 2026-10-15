@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 #cSpell:enableCompoundWords
 set -o pipefail
-export FULLTESTFLAG=0
 
+# Test depth after building stage3/stage4: 0 = quick (test-modules, native
+# only), 1 = the full `zig build test`. STAGE3_TESTS=0 skips stage3's tests.
+export FULLTESTFLAG=${FULLTESTFLAG:-0}
+export STAGE3_TESTS=${STAGE3_TESTS:-1}
+
+# Upstream devkit to bootstrap from. Keep in step with the tarball version in
+# zig-src/ci/*.ps1 and ci/*.sh.
 # check these versions before running!
 # export DEVKIT_VERSION=0.16.0-dev.104+689461e31
 # export DEVKIT_VERSION=0.17.0-dev.203+073889523
@@ -75,7 +81,6 @@ export CMAKE_BIN=$CMAKE_DIR/bin
 
 export ZIG_SRC=$ZIGROOT/zig-src
 export ZIG_BUILD=$ZIGROOT/build
-# export ZIG_STAGE3_BIN=$ZIG_BUILD/stage3/bin
 export ZIG_STAGE3_PREFIX=$ZIGROOTBIN/stage3
 export ZIG_STAGE3_BIN=$ZIG_STAGE3_PREFIX/bin
 export ZIG_STAGE4_PREFIX=$ZIGROOTBIN/stage4
@@ -84,11 +89,10 @@ export ZIG_STAGE4_BIN=$ZIG_STAGE4_PREFIX/bin
 export NINJA_EXE=$ZIGROOTBIN/ninja
 export CMAKE_EXE=$CMAKE_BIN/cmake
 export DEVKIT_ZIG_EXE=$DEVKIT/bin/zig
-# export ZIG_STAGE3_EXE=$ZIG_STAGE3_BIN/zig3
 export ZIG_STAGE3_EXE=$ZIG_STAGE3_BIN/zig
 export ZIG_STAGE4_EXE=$ZIG_STAGE4_BIN/zig
 
-# for windows specifically...
+# Windows (Git Bash/MSYS)
 if command -v cygpath >/dev/null 2>&1; then
   export DEVKIT_ZIG_EXE_WIN="$(cygpath -wa "$DEVKIT_ZIG_EXE")"
   export DEVKIT_ZIG_EXE="$DEVKIT_ZIG_EXE_WIN"

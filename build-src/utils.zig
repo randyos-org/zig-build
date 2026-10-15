@@ -4,7 +4,7 @@ const TargetInfo = @import("targets.zig").TargetInfo;
 // zig source submodule root, relative to zig-build's build.zig
 pub const zig_src = "zig-src";
 
-// Matches -Wl,--stack,0x10000000 in CMakeLists.
+// zig1 stack size; CMakeLists sets it with /STACK or -Wl,--stack on windows.
 pub const stack_size = 0x10000000;
 
 pub fn cExe(b: *std.Build, tgtinfo: TargetInfo, name: []const u8) *std.Build.Step.Compile {

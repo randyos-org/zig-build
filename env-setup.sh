@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 #cSpell:enableCompoundWords
+# Create the working directories (sourced after common.sh).
 
 mkdir -p "$DOWNLOADS"
 mkdir -p "$ZIGROOTBIN"
@@ -13,6 +14,4 @@ if [ ! -f "$ZIGROOT/lib/std/std.zig" ]; then
   rm -f "$ZIGROOT/lib"
   ln -s "$ZIG_SRC/lib" "$ZIGROOT/lib"
 fi
-# stale link from when zig2/stage3 lived in build/
-[ -L "$ZIG_BUILD/lib" ] && rm "$ZIG_BUILD/lib"
 true

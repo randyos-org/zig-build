@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 #cSpell:enableCompoundWords
+# Build a debug zig (stage4) from zig-src with stage3, then test it.
+# Extra arguments are passed to the build (e.g. -fincremental --watch).
 ZIGROOT=${ZIGROOT:-$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)}
 . "$ZIGROOT/common.sh"
 
@@ -15,7 +17,6 @@ cd "$ZIG_SRC"
   -Dno-lib \
   $@ \
   || exit 1
-  # -Denable-llvm \
 
 echo Build stage 4 complete, testing...
 if [ "$FULLTESTFLAG" -eq 1 ]; then
@@ -25,7 +26,6 @@ if [ "$FULLTESTFLAG" -eq 1 ]; then
     -Dstatic-llvm \
     --search-prefix "${DEVKIT_WIN:-$DEVKIT}" \
     || exit 1
-    # -Denable-llvm \
 else
   # "test-std" isn't a real step in this zig-src; the matching one is test-modules
   "$ZIG_STAGE4_EXE" build test-modules -Dskip-release -Dskip-non-native || exit 1

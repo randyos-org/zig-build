@@ -118,3 +118,13 @@ zlib
 ZLib
 zstd
 zstdmt
+
+powerzig
+ReleaseFast
+zig-src
+ccache
+direnv
+dirs
+zig-src
+zls
+zig-src

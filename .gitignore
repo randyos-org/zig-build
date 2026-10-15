@@ -11,7 +11,6 @@
 .pixi/*
 !.pixi/config.toml
 
-/last-failed-command.sh
 .zigversion
 zig-out/
 *.o

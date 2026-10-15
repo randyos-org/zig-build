@@ -27,12 +27,12 @@ CompileFlags:
     - "-target"
     - "x86_64-unknown-linux-gnu" # Changes target to 64-bit Linux
     - -nostdinc                     # Don't use host system or builtin headers
-    - "-resource-dir=../devkit-0.17.0-dev.203+073889523/lib/clang/22"
-    - "-isystem../devkit-0.17.0-dev.203+073889523/lib/zig/include"
-    - "-isystem../devkit-0.17.0-dev.203+073889523/lib/zig/libc/include/x86-linux-gnu"
-    - "-isystem../devkit-0.17.0-dev.203+073889523/lib/zig/libc/include/generic-glibc"
-    - "-isystem../devkit-0.17.0-dev.203+073889523/lib/zig/libc/include/x86-linux-any"
-    - "-isystem../devkit-0.17.0-dev.203+073889523/lib/zig/libc/include/any-linux-any"
+    - "-resource-dir=../devkit-x86_64-windows-gnu-0.18.0-dev.92+1e1964473/lib/clang/23"
+    - "-isystem../devkit-x86_64-windows-gnu-0.18.0-dev.92+1e1964473/lib/zig/include"
+    - "-isystem../devkit-x86_64-windows-gnu-0.18.0-dev.92+1e1964473/lib/zig/libc/include/x86-linux-gnu"
+    - "-isystem../devkit-x86_64-windows-gnu-0.18.0-dev.92+1e1964473/lib/zig/libc/include/generic-glibc"
+    - "-isystem../devkit-x86_64-windows-gnu-0.18.0-dev.92+1e1964473/lib/zig/libc/include/x86-linux-any"
+    - "-isystem../devkit-x86_64-windows-gnu-0.18.0-dev.92+1e1964473/lib/zig/libc/include/any-linux-any"
     #- "-D__linux__"              # Explicitly defines the Linux macro
     #- "-D__gnu_linux__"          # Explicitly defines the GNU Linux macro
     #- "-U_WIN32"                 # Un-defines Windows macros
@@ -52,7 +52,7 @@ If:
 CompileFlags:
   Add:
     - -D__CUDA__  # Define CUDA macro for GPU-only wrapper headers
-    - "-I../../../../devkit-0.17.0-dev.203+073889523/include"  # Add devkit headers for #include_next
+    - "-I../../../../devkit-x86_64-windows-gnu-0.18.0-dev.92+1e1964473/include"  # Add devkit headers for #include_next
 
 Diagnostics:
   UnusedIncludes: None
