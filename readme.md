@@ -76,7 +76,7 @@ The `llvm` key deliberately leaves out the zig-src pin, so moving zig-src rebuil
 | Path | Repo | Notes |
 | --- | --- | --- |
 | `zig-src` | [emanspeaks/zig](https://codeberg.org/emanspeaks/zig) | `randy` branch: upstream master plus a few branches merged in |
-| `zls` | [zigtools/zls](https://github.com/zigtools/zls) | upstream `master` |
+| `zls` | [emanspeaks/zls](https://github.com/emanspeaks/zls) | `randy` branch: upstream master plus fixes needed to build with zig master |
 | `powerzig-bootstrap` | [emanspeaks/powerzig-bootstrap](https://github.com/emanspeaks/powerzig-bootstrap) | CI for the cross LLVM |
 | `powerzig` | [emanspeaks/powerzig](https://github.com/emanspeaks/powerzig) | CI for the cross Zig |
 
