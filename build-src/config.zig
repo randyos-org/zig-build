@@ -56,7 +56,7 @@ pub fn genConfigZig(b: *std.Build, x: ExperimentalTargets) !std.Build.LazyPath {
         \\pub const version: [:0]const u8 = "{s}";
         \\pub const semver = @import("std").SemanticVersion.parse(version) catch unreachable;
         \\pub const enable_debug_extensions = false;
-        \\pub const enable_logging = false;
+        \\pub const log_level: @import("std").log.Level = .err;
         \\pub const enable_link_snapshots = false;
         \\pub const enable_tracy = false;
         \\pub const value_tracing = false;
