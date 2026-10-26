@@ -128,3 +128,4 @@ dirs
 zig-src
 zls
 zig-src
+zigtools

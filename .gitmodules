@@ -3,7 +3,7 @@
 	url = https://codeberg.org/emanspeaks/zig.git
 [submodule "zls"]
 	path = zls
-	url = https://github.com/emanspeaks/zls.git
+	url = https://github.com/zigtools/zls.git
 [submodule "powerzig"]
 	path = powerzig
 	url = https://github.com/emanspeaks/powerzig.git
