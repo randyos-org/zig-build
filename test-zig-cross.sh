@@ -23,7 +23,7 @@ case "${TARGET%%-*}" in
   *) QEMU_ARCH=${TARGET%%-*};;
 esac
 QEMU=$(command -v "qemu-$QEMU_ARCH-static" || command -v "qemu-$QEMU_ARCH") || {
-  echo "qemu-$QEMU_ARCH(-static) not found; install qemu-user-static" >&2
+  echo "qemu-$QEMU_ARCH(-static) not found; install qemu-user (qemu-user-static on older distros)" >&2
   exit 1
 }
 
