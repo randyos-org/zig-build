@@ -14,6 +14,8 @@ This follows the upstream [build-from-source](https://codeberg.org/ziglang/zig#b
 4. **Stage 4** (`build-stage4-debug.sh`): stage3 builds a debug zig into `bin/stage4/`, then runs tests. Rerun this after editing zig-src.
 5. **ZLS** (`build-zls.sh`): stage3 builds the `zls` submodule into `bin/zls/`, so ZLS's std matches the compiler.
 
+**Stage 5** (`build-stage5.sh`, optional): stage3 builds a scratch debug zig from `zig-src-stage5/`, a git worktree of `zig-src`, into that worktree's `zig-out/`. It is for compiler work that must not disturb stage4 while other projects build with it. stage4 is installed with `-Dno-lib`, so it reads `zig-src/lib` live, and editing `zig-src` changes the std its users compile against. stage5 skips LLVM, both linked in and as the backend that compiles it, unless `STAGE5_LLVM=1`, which cuts a rebuild from about fifteen minutes to about one; has its own caches under `build/stage5/`, and adds a hash of the worktree's uncommitted changes to its version string, so the ZIR cache is never shared between builds of the same commit. The script's header has the one-time `git worktree add` and the steps to promote a stable stage5 to stage4.
+
 Every stage targets the devkit's triple (`ZIG_HOST_TARGET`, autodetected: `x86_64-windows-gnu`, `x86_64-linux-musl`, and so on), so all objects link cleanly against the devkit's LLVM libraries.
 
 ## Usage
@@ -22,6 +24,7 @@ Every stage targets the devkit's triple (`ZIG_HOST_TARGET`, autodetected: `x86_6
 ./build-all.sh              # stage3, stage4, then ZLS
 ./build-stage3.sh           # just the bootstrap through stage3
 ./build-stage4-debug.sh     # rebuild the debug compiler after editing zig-src
+./build-stage5.sh           # scratch compiler from the zig-src-stage5 worktree
 ./build-zls.sh
 ```
 
@@ -85,3 +88,47 @@ The `llvm` key deliberately leaves out the zig-src pin, so moving zig-src rebuil
 Submodules are pinned by commit only (no `branch =`). `.gitmodules` uses HTTPS URLs so the repo clones without SSH keys. **If you point a submodule at a commit that lives in a different repo** (for example switching `zig-src` from a fork back to upstream), update its `url` in `.gitmodules` too. Otherwise, a fresh `git clone --recursive` cannot fetch the pinned commit.
 
 When zig-src is updated, check `build-src/` and the stage scripts against upstream `CMakeLists.txt`, `stage1/config.zig.in`, `build.zig` (the LLVM/Clang/LLD library lists) and `ci/` (devkit version), since stage 1 replicates them by hand.
+
+### What the `randy` branches carry
+
+This is the recipe for rebuilding each `randy` branch from upstream. Keep it in sync with the branches. When upstream merges a PR, drop it from the list. When a merge needs a hand-resolved conflict or a local patch, record it under that entry.
+
+#### Zig-src
+
+Base: [ziglang/zig](https://codeberg.org/ziglang/zig) `master`, merged into `randy` (last: `72c7ff4b8e`, 2026-10-31).
+
+| Change | Source | Notes |
+| --- | --- | --- |
+| std: OS independence day | [#31235](https://codeberg.org/ziglang/zig/pulls/31235), branch `the-os-independence-day` on [GasInfinity/zig](https://codeberg.org/GasInfinity/zig) (`c0533f388a`) | Lets the root module override OS APIs by declaring `std_os_options` (`std.Options.OperatingSystem`). The author force-pushes rebases: when that happens, rebuild `randy` (reset to upstream `master`, then merge the branch again) instead of merging on top of the old copy. Conflict resolution in `lib/std/Io/Dir.zig`: keep the `os_options` override on `max_name_bytes` and upstream OS list (haiku fix `77d692a72e`). |
+| SPIRV: remove UB for `@extern` fns | [#37456](https://codeberg.org/ziglang/zig/pulls/37456) (`822faa0140`) | Merged as-is. |
+| SPIRV: bitcast ptr to int | [#37468](https://codeberg.org/ziglang/zig/pulls/37468) (`f67059a605`) | Merged as-is. |
+| ci: enable running SPIR-V behavior tests | [#37168](https://codeberg.org/ziglang/zig/pulls/37168) (`1175625e6d`) | Approved, but conflicts with master. Resolve every conflict to upstream: its compiler changes landed in #37300, and master already has its behavior-test skips as `builtin.cpu.arch.isSpirv()`. What remains is the `-Dspirv-test-runner`/`-Dspirv-test-executor` options, the `spirv64-vulkan` module test target and CI scripts; use `isSpirv` instead of the deprecated `isSpirV` in `test/tests.zig`. Drop once merged upstream. |
+| Fix SPIR-V invalid memory access on small int read/write | [#36741](https://codeberg.org/ziglang/zig/pulls/36741) (`e5a57bfbc3`) + local commit `2ecec6672f` | Upstream review requested changes, so we applied them ourselves. Merge: keep only `getSpirvPtrRwFeatures` in `src/target.zig` (upstream deleted `isDynamicAMDGCNFeature`), and use `Type.fmt(zcu)` and `isSpirv`. Local commit: covers bools, enums, error sets, f16, optionals and error unions; walks tuples and union tags; uses the reviewer's error wording; drops the PR's `int64` requirement for ints wider than 32 bits; formats and extends the tests. Replace with the upstream version once it lands. |
+
+To rebuild from scratch: check out upstream `master`, merge each source above in table order with `--no-ff`, apply the noted resolutions, and cherry-pick the listed local commits.
+
+#### Zig-src `randy-matrix`
+
+A prototype of a builtin matrix type, `@Matrix(rows, cols, T)`, on top of `randy`, following [#4960](https://github.com/ziglang/zig/issues/4960) (accepted for SPIR-V) and [#35376](https://codeberg.org/ziglang/zig/issues/35376). Zig's no-AI policy rules it out as an upstream contribution. It stays a separate branch, rebased onto `randy` when `randy` moves.
+
+| Commit | What it adds |
+| --- | --- |
+| `e7950e99f2` | The type: column-major, columns are `@Vector(rows, T)`, float elements. Coerces to and from `[cols][rows]T` and from tuples of columns. Extern only on SPIR-V. |
+| `586f2b9bac` | `m[c]` indexing, `.{ col, col }` init, `.len`, `for` and destructuring, at runtime and comptime. On Vulkan and OpenGL, 2 to 4 columns of 2 to 4 floats lower to `OpTypeMatrix`, with `ColMajor` and `MatrixStride` on the block members holding one; other matrices lower to an array of columns. |
+| `db33a6a3f0` | The operators and `@transpose` below, the `matrix_mul` and `matrix_transpose` AIR instructions SPIR-V lowers them from, and `OpCompositeExtract` for comptime-known column indexes. |
+
+Operators: `+`, `-` and negation work column by column. `*` multiplies a matrix by a matrix, a vector or a scalar, or a vector by a matrix, and `@transpose(m)` transposes. On `OpTypeMatrix` they lower to SPIR-V's matrix instructions; everywhere else, and at comptime, Sema expands them into vector arithmetic. Products sum in column order, unfused, unless the float mode is optimized.
+
+Iterate with `build-stage5.sh` in the `zig-src-stage5` worktree; `rstd/tools/spirv_matrix_probe.zig` in randyos checks the SPIR-V output with `spirv-val`.
+
+#### ZLS
+
+Base: [zigtools/zls](https://github.com/zigtools/zls) `master`, merged into `randy` (last: `25df3a30`, 2026-10-31). Conflict resolution in `src/features/completions.zig`: take upstream struct completion-kind fix (`c72bd803`).
+
+| Change | Commit | Notes |
+| --- | --- | --- |
+| Parenthesize code action | `baf0bed4` | Adds a code action that inserts parentheses where zig master's partially ordered precedence (`64e4f9db8f`) requires them. The same commit's parentheses in `build.zig`, `InternPool.zig`, `code_actions.zig`, `completions.zig` and `semantic_tokens.zig` are now identical to upstream (`da8d5314`). Randy-only feature. |
+| Deprecation detection | `271b0827` | Detects `Deprecated…` doc comments and drives builtin deprecations from data (semantic tokens, completions). Its known-folders bump is now identical to upstream (`15c10aaf`). Randy-only feature. |
+| `@Matrix` support | `4792e305`, `763613bb` | Langref entries for `randy-matrix`'s `@Matrix` and `@transpose`, and an inlay-hint table that defaults missing builtins, so ZLS builds against a std with or without them. Randy-only feature. |
+
+Upstream ZLS bans AI-generated contributions (`f8563bab`), so these features aren't candidates to send upstream.

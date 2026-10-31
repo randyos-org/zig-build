@@ -5,6 +5,8 @@
 /devkit-*/
 /zig+llvm+lld+clang-*/
 /build/
+# zig-src worktree for build-stage5.sh
+/zig-src-stage5/
 .zig-cache/
 
 # pixi environments
