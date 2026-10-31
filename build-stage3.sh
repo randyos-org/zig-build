@@ -6,6 +6,11 @@
 . ./env-setup.sh
 . ./build-devkit.sh
 
+# stage 1 and stage 3 both bake `git describe` into the version string;
+# stage4 needs no fetch of its own since it always follows this script
+fetch-upstream-tags "$ZIG_SRC" "$ZIG_UPSTREAM_URL" ||
+  echo "warning: could not fetch zig tags; version string may lack the dev suffix" >&2
+
 # stage 1: devkit zig builds zig1/zig2
 # every stage targets the devkit's triple, like upstream ci passes
 # -target/-mcpu to cmake's zig cc (on linux that means musl, not glibc)

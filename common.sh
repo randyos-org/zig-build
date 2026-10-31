@@ -80,6 +80,7 @@ export CMAKE_DIR=$ZIGROOTBIN/$CMAKE_NAME
 export CMAKE_BIN=$CMAKE_DIR/bin
 
 export ZIG_SRC=$ZIGROOT/zig-src
+export ZIG_UPSTREAM_URL=https://codeberg.org/ziglang/zig.git
 export ZIG_BUILD=$ZIGROOT/build
 export ZIG_STAGE3_PREFIX=$ZIGROOTBIN/stage3
 export ZIG_STAGE3_BIN=$ZIG_STAGE3_PREFIX/bin
@@ -103,6 +104,7 @@ fi
 # end windows weirdo overrides
 
 export ZLS_SRC=$ZIGROOT/zls
+export ZLS_UPSTREAM_URL=https://github.com/zigtools/zls.git
 export ZLS_BUILD=$ZIG_BUILD/zls
 export ZLS_PREFIX=$ZIGROOTBIN/zls
 export ZLS_BIN=$ZLS_PREFIX/bin
@@ -126,6 +128,16 @@ export ZIG_LOCAL_CACHE_DIR=$ZIG_BUILD/zig-local-cache
 # e.g. with rerun-failed-step.sh.
 export ZIG_BUILD_LOG_DIR=$ZIG_BUILD/logs
 export ZIG_BUILD_LOG="$ZIG_BUILD_LOG_DIR/build-$(date +%Y%m%d-%H%M%S).log"
+
+# The zig-src and zls forks carry no release tags, so `git describe` (which
+# both build.zig files use for the dev version string) needs upstream's.
+# Blobless clones (ci-sources.sh) must keep the filter, but git refuses
+# --filter in a full clone.
+fetch-upstream-tags () {
+  local dir=$1 url=$2 filter=
+  git -C "$dir" config --get extensions.partialClone >/dev/null && filter=--filter=blob:none
+  git -C "$dir" fetch --quiet $filter --tags "$url"
+}
 
 pause () {
   # cmd //c pause

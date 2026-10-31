@@ -25,6 +25,8 @@ Every stage targets the devkit's triple (`ZIG_HOST_TARGET`, autodetected: `x86_6
 ./build-zls.sh
 ```
 
+The `zig-src` and `zls` forks carry no release tags, so `build-stage3.sh` and `build-zls.sh` first fetch upstream tags into their submodule. Without the tags, `git describe` fails, and the version string loses its `-dev.N+hash` suffix. If the fetch fails (when offline, for example), the scripts warn and build anyway.
+
 Extra arguments to `build-stage3.sh` and `build-stage4-debug.sh` are passed to `zig build` (e.g. `-Dllvm-has-m68k` for a devkit built with that experimental target, or `-fincremental --watch` for stage4).
 
 Settings, read from the environment, with defaults in `common.sh`:
