@@ -154,3 +154,5 @@ zstdmt
 randyos
 Langref
 builtins
+comptime-known
+miscompiles
