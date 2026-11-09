@@ -7,6 +7,7 @@ bitcast
 bitcode
 bools
 builtin
+builtins
 ccache
 cflags
 checkcmake
@@ -14,6 +15,7 @@ ci
 CMake
 cmakefail
 comptime
+comptime-known
 csky
 ddict
 destructuring
@@ -31,6 +33,8 @@ envrc
 Extern
 femit
 fns
+fptosi
+fptoui
 GasInfinity
 ghcup
 GiB
@@ -42,6 +46,7 @@ init
 int
 ints
 kcov
+Langref
 libc
 libclang
 libcpp
@@ -83,6 +88,7 @@ ltrimstr
 lversion
 Mbuild
 mcpu
+miscompiles
 mklink
 mlugg
 Mroot
@@ -151,8 +157,11 @@ zls
 zstd
 zstdmt
 
-randyos
-Langref
-builtins
-comptime-known
-miscompiles
+zig-toolchain
+randyos-org
+Codeberg
+codeberg
+zfls
+llvm-project
+comptime-index-only
+zig-devkits
