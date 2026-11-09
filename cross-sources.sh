@@ -9,9 +9,11 @@
 # what zig-src expects (find_package(llvm N) in zig-src/CMakeLists.txt) and the
 # devkit (DEVKIT_VERSION in common.sh).
 
-export ZIG_BOOTSTRAP_URL=https://codeberg.org/ziglang/zig-bootstrap.git
-# LLVM/Clang/LLD 23.1.2, zlib 1.3.1, zstd 1.5.2
-export ZIG_BOOTSTRAP_COMMIT=f25e773b1937990281e7b80112d267354ea7e894
+# the GitHub mirror of https://codeberg.org/ziglang/zig-bootstrap, kept by
+# zig-devkits' Mirror zig-bootstrap workflow (run it if a new pin is missing)
+export ZIG_BOOTSTRAP_URL=${ZIG_BOOTSTRAP_URL:-https://github.com/randyos-org/zig-bootstrap.git}
+# LLVM/Clang/LLD 23.1.4, zlib 1.3.1, zstd 1.5.2
+export ZIG_BOOTSTRAP_COMMIT=2bceaa4ab64ae87a42ca91658a602b63cbac45b4
 export ZIG_BOOTSTRAP_SRC=$ZIG_BUILD/zig-bootstrap-${ZIG_BOOTSTRAP_COMMIT:0:12}
 
 export ZIG_CROSS_DIR=$ZIG_BUILD/cross

@@ -12,6 +12,8 @@ fn cmakeInt(text: []const u8, key: []const u8) usize {
 
 // version constants live in zig-src CMakeLists; parse them so nothing is hardcoded here
 fn srcVersion(b: *std.Build) !std.SemanticVersion {
+    // the configure phase is cached; reading the file must invalidate it
+    b.dependOnFileContents(b.path(zig_src ++ "/CMakeLists.txt"));
     const cwd: std.Io.Dir = .cwd();
     const text = cwd.readFileAlloc(b.graph.io, try b.root.joinString(b.allocator, zig_src ++ "/CMakeLists.txt"), b.allocator, .limited(1 << 20)) catch
         @panic("cannot read " ++ zig_src ++ "/CMakeLists.txt");
@@ -22,9 +24,38 @@ fn srcVersion(b: *std.Build) !std.SemanticVersion {
     };
 }
 
+// The configure phase is cached, and `git describe` alone does not invalidate
+// it: a stale version string makes zig2 reuse ZIR cached by an older compiler
+// and crash. Depend on zig-src's HEAD the way upstream's build.zig does.
+fn dependOnGitHead(b: *std.Build) !void {
+    const io = b.graph.io;
+    const git_file = b.root.openFile(io, zig_src ++ "/.git", .{ .allow_directory = false }) catch |err| switch (err) {
+        error.IsDir => {
+            b.dependOnFileMetadata(b.path(zig_src ++ "/.git/logs/HEAD"));
+            return;
+        },
+        else => |e| return e,
+    };
+    defer git_file.close(io);
+    // a submodule or worktree: .git names the real git dir
+    b.dependOnFileContents(b.path(zig_src ++ "/.git"));
+    var line_buffer: ["gitdir: ".len + std.Io.Dir.max_path_bytes + 1]u8 = undefined;
+    var git_file_reader = git_file.reader(io, &line_buffer);
+    if (std.mem.cutPrefix(u8, std.mem.trimEnd(u8, try git_file_reader.interface.allocRemaining(
+        b.allocator,
+        .limited("gitdir: ".len + std.Io.Dir.max_path_bytes + "\r\n".len),
+    ), "\r\n"), "gitdir: ")) |git_dir| {
+        b.dependOnFileMetadata(if (std.Io.Dir.path.isAbsolute(git_dir))
+            b.graph.cwdRelativePath(b.pathJoin(&.{ git_dir, "logs", "HEAD" }))
+        else
+            b.path(b.pathJoin(&.{ zig_src, git_dir, "logs", "HEAD" })));
+    }
+}
+
 fn resolveVersion(b: *std.Build, sv: std.SemanticVersion) ![]const u8 {
     if (b.option([]const u8, "version-string", "override zig version string")) |v| return v;
     const base = b.fmt("{d}.{d}.{d}", .{ sv.major, sv.minor, sv.patch });
+    try dependOnGitHead(b);
     var code: u8 = undefined;
     const raw = b.runAllowFail(&.{
         "git", "-C", try b.root.joinString(b.allocator, zig_src), "describe", "--match", "*.*.*", "--tags", "--abbrev=9",

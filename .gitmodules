@@ -10,3 +10,6 @@
 [submodule "powerzig-bootstrap"]
 	path = powerzig-bootstrap
 	url = https://github.com/emanspeaks/powerzig-bootstrap.git
+[submodule "zig-devkits"]
+	path = zig-devkits
+	url = https://github.com/randyos-org/zig-devkits.git
