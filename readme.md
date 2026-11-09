@@ -78,7 +78,7 @@ The `llvm` key deliberately leaves out the zig-src pin, so moving zig-src rebuil
 
 ### CI (zig-toolchain)
 
-[randyos-org/zig-toolchain](https://github.com/randyos-org/zig-toolchain) builds the zig-src this repo pins natively on each GitHub-hosted runner with `ci-sources.sh` and `build-stage3.sh`, and releases one archive per host as `zig-<version>`; other projects' CI installs it with `randyos-org/zig-toolchain/setup@main`. It runs daily, on its own pushes and by hand, and it skips any host whose `host` key is already released, so moving the zig-src pin (or editing a `host` key input) is what makes a new release. It clones this repo from its GitHub mirror, and zig-src from `randyos-org/zig` (`ZIG_SRC_URL`).
+The `zig-toolchain` submodule, [randyos-org/zig-toolchain](https://github.com/randyos-org/zig-toolchain), builds the zig-src this repo pins natively on each GitHub-hosted runner with `ci-sources.sh` and `build-stage3.sh`, and releases one archive per host as `zig-<version>`; other projects' CI installs it with `randyos-org/zig-toolchain/setup@main`. It runs daily, on its own pushes and by hand, and it skips any host whose `host` key is already released, so moving the zig-src pin (or editing a `host` key input) is what makes a new release. It clones this repo from its GitHub mirror, and zig-src from `randyos-org/zig` (`ZIG_SRC_URL`).
 
 ### CI (zig-devkits)
 
@@ -97,6 +97,9 @@ Codeberg is the source for this repo and the zig-src fork. Each push-mirrors (ov
 | `powerzig-bootstrap` | [emanspeaks/powerzig-bootstrap](https://github.com/emanspeaks/powerzig-bootstrap) | CI for the cross LLVM |
 | `powerzig` | [emanspeaks/powerzig](https://github.com/emanspeaks/powerzig) | CI for the cross Zig |
 | `zig-devkits` | [randyos-org/zig-devkits](https://github.com/randyos-org/zig-devkits) | Devkit mirrors and builds |
+| `zig-toolchain` | [randyos-org/zig-toolchain](https://github.com/randyos-org/zig-toolchain) | CI that releases stage3 per host |
+
+`zig-devkits` and `zig-toolchain` are pinned here so that every change to this repo, its scripts or its zig-src pin is committed together with the workflows that consume it. Neither repo's CI reads these pins (both clone this repo's `main` from its GitHub mirror), so after pushing a change to either one, move its pin here in the same zig-build commit as the change it goes with.
 
 Submodules are pinned by commit only (no `branch =`). `.gitmodules` uses HTTPS URLs so the repo clones without SSH keys. **If you point a submodule at a commit that lives in a different repo** (for example switching `zig-src` from a fork back to upstream), update its `url` in `.gitmodules` too. Otherwise, a fresh `git clone --recursive` cannot fetch the pinned commit.
 

@@ -13,3 +13,6 @@
 [submodule "zig-devkits"]
 	path = zig-devkits
 	url = https://github.com/randyos-org/zig-devkits.git
+[submodule "zig-toolchain"]
+	path = zig-toolchain
+	url = https://github.com/randyos-org/zig-toolchain.git
