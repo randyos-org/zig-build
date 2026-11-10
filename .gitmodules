@@ -6,10 +6,10 @@
 	url = https://github.com/randyos-org/zls.git
 [submodule "powerzig"]
 	path = powerzig
-	url = https://github.com/emanspeaks/powerzig.git
+	url = https://github.com/randyos-org/powerzig.git
 [submodule "powerzig-bootstrap"]
 	path = powerzig-bootstrap
-	url = https://github.com/emanspeaks/powerzig-bootstrap.git
+	url = https://github.com/randyos-org/powerzig-bootstrap.git
 [submodule "zig-devkits"]
 	path = zig-devkits
 	url = https://github.com/randyos-org/zig-devkits.git

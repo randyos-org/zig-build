@@ -1,6 +1,6 @@
 # zig-build
 
-A collection of scripts to automate building the [Zig](https://ziglang.org) compiler and [ZLS](https://github.com/zigtools/zls) from source. They also cross-compile LLVM and Zig for other targets, which is how the PowerPC builds in [powerzig](https://github.com/emanspeaks/powerzig) are made.
+A collection of scripts to automate building the [Zig](https://ziglang.org) compiler and [ZLS](https://github.com/zigtools/zls) from source. They also cross-compile LLVM and Zig for other targets, which is how the PowerPC builds in [powerzig](https://github.com/randyos-org/powerzig) are made.
 
 Everything runs from a bash shell: Git Bash/MSYS on Windows, or any Linux, macOS or BSD shell.
 
@@ -64,8 +64,8 @@ When zig-src moves to a new LLVM major version, bump `ZIG_BOOTSTRAP_COMMIT` in `
 
 The `powerzig-bootstrap` and `powerzig` submodules are GitHub repos whose workflows clone this repo at a commit and run its scripts; all build logic stays here.
 
-- **[Powerzig-bootstrap](https://github.com/emanspeaks/powerzig-bootstrap)** builds stage3 (cached by `host_key`) and then the cross LLVM (split across two jobs that share ccache), and publishes the installation prefix as release `vN`.
-- **[powerzig](https://github.com/emanspeaks/powerzig)** waits for an LLVM release with the matching `llvm_key`, cross-compiles zig, smoke-tests it, and publishes it.
+- **[Powerzig-bootstrap](https://github.com/randyos-org/powerzig-bootstrap)** builds stage3 (cached by `host_key`) and then the cross LLVM (split across two jobs that share ccache), and publishes the installation prefix as release `vN`.
+- **[powerzig](https://github.com/randyos-org/powerzig)** waits for an LLVM release with the matching `llvm_key`, cross-compiles zig, smoke-tests it, and publishes it.
 
 Each release carries a `manifest.json`, and a scheduled run is skipped when a release with the same key already exists. The keys hash these inputs:
 
@@ -97,8 +97,8 @@ The zig-src fork's source is Codeberg, [emanspeaks/zig](https://codeberg.org/ema
 | --- | --- | --- |
 | `zig-src` | [emanspeaks/zig](https://codeberg.org/emanspeaks/zig) | `randy` branch: upstream master plus a few branches merged in |
 | `zls` | [randyos-org/zls](https://github.com/randyos-org/zls) | `randy` branch: upstream master plus fixes needed to build with zig master |
-| `powerzig-bootstrap` | [emanspeaks/powerzig-bootstrap](https://github.com/emanspeaks/powerzig-bootstrap) | CI for the cross LLVM |
-| `powerzig` | [emanspeaks/powerzig](https://github.com/emanspeaks/powerzig) | CI for the cross Zig |
+| `powerzig-bootstrap` | [randyos-org/powerzig-bootstrap](https://github.com/randyos-org/powerzig-bootstrap) | CI for the cross LLVM |
+| `powerzig` | [randyos-org/powerzig](https://github.com/randyos-org/powerzig) | CI for the cross Zig |
 | `zig-devkits` | [randyos-org/zig-devkits](https://github.com/randyos-org/zig-devkits) | Devkit mirrors and builds |
 | `zig-toolchain` | [randyos-org/zig-toolchain](https://github.com/randyos-org/zig-toolchain) | CI that releases stage3 per host |
 
