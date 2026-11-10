@@ -4,7 +4,7 @@
 # Extra arguments (e.g. -Dllvm-has-m68k) are passed to both zig builds.
 . ./common.sh
 . ./env-setup.sh
-. ./build-devkit.sh
+. ./fetch-devkit.sh
 
 # stage 1 and stage 3 both bake `git describe` into the version string;
 # stage4 needs no fetch of its own since it always follows this script

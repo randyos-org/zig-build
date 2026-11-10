@@ -33,7 +33,7 @@ zig-src-pin () { git -C "$ZIGROOT" ls-files -s zig-src | awk '{print $2}'; }
 
 host-key () {
   local scripts
-  scripts=$(cd "$ZIGROOT" && ls build.zig build.zig.zon build-src/*.zig common.sh env-setup.sh build-devkit.sh build-stage3.sh)
+  scripts=$(cd "$ZIGROOT" && ls build.zig build.zig.zon build-src/*.zig common.sh env-setup.sh fetch-devkit.sh build-stage3.sh)
   printf 'host\n%s\n%s\n%s\n%s\n%s\n' "$(zig-src-pin)" "$DEVKIT_VERSION" "$ZIG_HOST_TARGET" "$ZIG_HOST_CPU" \
     "$(files-hash $scripts)" | sha256
 }
