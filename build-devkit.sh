@@ -12,6 +12,25 @@ sha256-of () {
   if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1"; else shasum -a 256 "$1"; fi | cut -d' ' -f1
 }
 
+# a zig version as a string that sorts in version order (a release after its
+# dev builds; the commit hash is ignored)
+version-sort-key () {
+  local v=${1%%+*} base dev a b c
+  base=${v%%-*}
+  dev=${v#"$base"}
+  dev=${dev#-dev.}
+  IFS=. read -r a b c <<< "$base"
+  printf '%05d%05d%05d%010d' "$a" "$b" "$c" "${dev:-9999999999}"
+}
+
+# A devkit other than upstream's (zig-devkits' build, or an override) may be
+# newer than upstream's, but not older: zig-build's build.zig must compile with
+# upstream's devkit zig, and nothing guarantees it still compiles with an older one.
+if [[ "$(version-sort-key "$DEVKIT_VERSION")" < "$(version-sort-key "$UPSTREAM_DEVKIT_VERSION")" ]]; then
+  echo "devkit $DEVKIT_VERSION for $ZIG_HOST_TARGET is older than upstream's $UPSTREAM_DEVKIT_VERSION; build a newer one in zig-devkits and move its pin" >&2
+  exit 1
+fi
+
 [ -x "$DEVKIT_ZIG_EXE" ] && DEVKIT_VER_TMP=$("$DEVKIT_ZIG_EXE" version)
 if [ "$DEVKIT_VER_TMP" != "$DEVKIT_VERSION" ]; then
   [ -f "$DEVKIT_ARCHIVE" ] || curl -o "$DEVKIT_ARCHIVE" -fL "$DEVKIT_URL" || exit 1
