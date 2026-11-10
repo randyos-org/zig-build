@@ -1,0 +1,40 @@
+# Mirrors zig-build's branches and tags from GitHub, the canonical repo, to
+# codeberg.org/emanspeaks/zig-build, a read-only copy. Needs the
+# CODEBERG_MIRROR_KEY secret: the private half of the deploy key "github
+# actions mirror", with write access on that Codeberg repository.
+name: Mirror to Codeberg
+
+on:
+  push:
+  schedule:
+    - cron: "23 3 * * *"
+  workflow_dispatch:
+
+# one at a time; a waiting run is replaced by a newer one, which mirrors all
+concurrency:
+  group: mirror-codeberg
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Push branches and tags
+        env:
+          KEY: ${{ secrets.CODEBERG_MIRROR_KEY }}
+          SOURCE: ${{ github.server_url }}/${{ github.repository }}.git
+        run: |
+          set -eu
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/codeberg
+          chmod 600 ~/.ssh/codeberg
+          # Codeberg's ED25519 host key, SHA256:mIlxA9k46MmM6qdJOdMnAQpzGxF4WIVVL+fj+wZbw0g
+          # (docs.codeberg.org/security/ssh-fingerprint)
+          echo 'codeberg.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIVIC02vnjFyL+I4RHfvIGNtOgJMe769VTF1VR4EB3ZB' > ~/.ssh/known_hosts
+          export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/codeberg -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes"
+          git clone --bare "$SOURCE" zig-build.git
+          # heads and tags only: Codeberg's own refs (refs/pull) stay
+          git -C zig-build.git push --force --prune git@codeberg.org:emanspeaks/zig-build.git \
+            'refs/heads/*:refs/heads/*' 'refs/tags/*:refs/tags/*'

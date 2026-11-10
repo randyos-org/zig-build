@@ -79,28 +79,30 @@ The `llvm` key deliberately leaves out the zig-src pin, so moving zig-src rebuil
 
 ### CI (zig-toolchain)
 
-The `zig-toolchain` submodule, [randyos-org/zig-toolchain](https://github.com/randyos-org/zig-toolchain), builds the zig-src this repo pins natively on each GitHub-hosted runner with `ci-sources.sh` and `build-stage3.sh`, and releases one archive per host as `zig-<version>`; other projects' CI installs it with `randyos-org/zig-toolchain/setup@main`. It runs daily, on its own pushes and by hand, and it skips any host whose `host` key is already released, so moving the zig-src pin (or editing a `host` key input) is what makes a new release. It clones this repo from its GitHub mirror, and zig-src from `randyos-org/zig` (`ZIG_SRC_URL`).
+The `zig-toolchain` submodule, [randyos-org/zig-toolchain](https://github.com/randyos-org/zig-toolchain), builds the zig-src this repo pins natively on each GitHub-hosted runner with `ci-sources.sh` and `build-stage3.sh`, and releases one archive per host as `zig-<version>`; other projects' CI installs it with `randyos-org/zig-toolchain/setup@main`. It runs daily, on its own pushes and by hand, and it skips any host whose `host` key is already released, so moving the zig-src pin (or editing a `host` key input) is what makes a new release. It clones this repo from GitHub, and zig-src from its GitHub mirror `randyos-org/zig` (`ZIG_SRC_URL`).
 
 ### CI (zig-devkits)
 
-The `zig-devkits` submodule, [randyos-org/zig-devkits](https://github.com/randyos-org/zig-devkits), is the home for devkits: it mirrors upstream devkits from `ziglang.org/deps` as releases, and builds the ones upstream doesn't publish (x86_64-macos) with this repo's cross scripts. `devkits.json` there names the devkit for each host, and `common.sh` reads it at the pinned commit, so a host takes a newer zig-devkits build only when the pin moves (which changes that host's `host` key, so zig-toolchain rebuilds it). Its workflows fetch this repo and zig-src from the GitHub mirrors, as zig-toolchain does.
+The `zig-devkits` submodule, [randyos-org/zig-devkits](https://github.com/randyos-org/zig-devkits), is the home for devkits: it mirrors upstream devkits from `ziglang.org/deps` as releases, and builds the ones upstream doesn't publish (x86_64-macos) with this repo's cross scripts. `devkits.json` there names the devkit for each host, and `common.sh` reads it at the pinned commit, so a host takes a newer zig-devkits build only when the pin moves (which changes that host's `host` key, so zig-toolchain rebuilds it). Its workflows fetch this repo and zig-src from GitHub, as zig-toolchain does.
 
 ## Mirrors
 
-Codeberg is the source for this repo and the zig-src fork. Each push-mirrors (over SSH, on every push and every 8 hours) to a read-only GitHub copy: [randyos-org/zig-build](https://github.com/randyos-org/zig-build) and [randyos-org/zig](https://github.com/randyos-org/zig). The fork carries upstream release tags, so the GitHub copy can stand in for upstream when `git describe` needs them; push each new upstream release tag to the fork. Each GitHub copy has a write deploy key titled "codeberg push mirror", and issues, PRs and Actions turned off. Don't push to the GitHub copies directly: the next sync force-pushes over them. Upstream's zig-bootstrap can't be mirrored this way (Codeberg allows no new pull mirrors), so zig-devkits **Mirror zig-bootstrap** workflow pushes it to [randyos-org/zig-bootstrap](https://github.com/randyos-org/zig-bootstrap) nightly instead.
+This repo's source is GitHub, [randyos-org/zig-build](https://github.com/randyos-org/zig-build): file issues and pull requests there. Its **Mirror to Codeberg** workflow (`.github/workflows/mirror-codeberg.yml`) pushes its branches and tags to a read-only copy, [emanspeaks/zig-build](https://codeberg.org/emanspeaks/zig-build), on every push and nightly, with a Codeberg write deploy key titled "github actions mirror" whose private half is the secret `CODEBERG_MIRROR_KEY`. Don't push to the Codeberg copy directly: the next run force-pushes over it.
+
+The zig-src fork's source is Codeberg, [emanspeaks/zig](https://codeberg.org/emanspeaks/zig). It push-mirrors (over SSH, on every push and every 8 hours) to a read-only GitHub copy, [randyos-org/zig](https://github.com/randyos-org/zig), which has a write deploy key titled "codeberg push mirror", and issues, PRs and Actions turned off. The fork carries upstream release tags, so the GitHub copy can stand in for upstream when `git describe` needs them; push each new upstream release tag to the fork. Don't push to the GitHub copy directly: the next sync force-pushes over it. Upstream's zig-bootstrap can't be mirrored this way (Codeberg allows no new pull mirrors), so zig-devkits **Mirror zig-bootstrap** workflow pushes it to [randyos-org/zig-bootstrap](https://github.com/randyos-org/zig-bootstrap) nightly instead.
 
 ## Submodules
 
 | Path | Repo | Notes |
 | --- | --- | --- |
 | `zig-src` | [emanspeaks/zig](https://codeberg.org/emanspeaks/zig) | `randy` branch: upstream master plus a few branches merged in |
-| `zls` | [emanspeaks/zls](https://github.com/emanspeaks/zls) | `randy` branch: upstream master plus fixes needed to build with zig master |
+| `zls` | [randyos-org/zls](https://github.com/randyos-org/zls) | `randy` branch: upstream master plus fixes needed to build with zig master |
 | `powerzig-bootstrap` | [emanspeaks/powerzig-bootstrap](https://github.com/emanspeaks/powerzig-bootstrap) | CI for the cross LLVM |
 | `powerzig` | [emanspeaks/powerzig](https://github.com/emanspeaks/powerzig) | CI for the cross Zig |
 | `zig-devkits` | [randyos-org/zig-devkits](https://github.com/randyos-org/zig-devkits) | Devkit mirrors and builds |
 | `zig-toolchain` | [randyos-org/zig-toolchain](https://github.com/randyos-org/zig-toolchain) | CI that releases stage3 per host |
 
-`zig-devkits` and `zig-toolchain` are pinned here so that every change to this repo, its scripts or its zig-src pin is committed together with the workflows that consume it. Neither repo's CI reads these pins (both clone this repo's `main` from its GitHub mirror), so after pushing a change to either one, move its pin here in the same zig-build commit as the change it goes with.
+`zig-devkits` and `zig-toolchain` are pinned here so that every change to this repo, its scripts or its zig-src pin is committed together with the workflows that consume it. Neither repo's CI reads these pins (both clone this repo's `main` from GitHub), so after pushing a change to either one, move its pin here in the same zig-build commit as the change it goes with.
 
 Submodules are pinned by commit only (no `branch =`). `.gitmodules` uses HTTPS URLs so the repo clones without SSH keys. **If you point a submodule at a commit that lives in a different repo** (for example switching `zig-src` from a fork back to upstream), update its `url` in `.gitmodules` too. Otherwise, a fresh `git clone --recursive` cannot fetch the pinned commit.
 
