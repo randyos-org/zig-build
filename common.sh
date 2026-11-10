@@ -8,11 +8,12 @@ export FULLTESTFLAG=${FULLTESTFLAG:-0}
 export STAGE3_TESTS=${STAGE3_TESTS:-1}
 
 # Upstream devkit to bootstrap from. Keep in step with the tarball version in
-# zig-src/ci/*.ps1 and ci/*.sh.
+# zig-src/ci/*.ps1 and ci/*.sh. A host upstream publishes no devkit for takes
+# zig-devkits' build instead (DEVKIT_VERSION, below).
 # check these versions before running!
-# export DEVKIT_VERSION=0.16.0-dev.104+689461e31
-# export DEVKIT_VERSION=0.17.0-dev.203+073889523
-export DEVKIT_VERSION=0.18.0-dev.92+1e1964473
+# UPSTREAM_DEVKIT_VERSION=0.16.0-dev.104+689461e31
+# UPSTREAM_DEVKIT_VERSION=0.17.0-dev.203+073889523
+UPSTREAM_DEVKIT_VERSION=0.18.0-dev.92+1e1964473
 
 export NINJA_VERSION=1.13.2
 export CMAKE_VERSION=4.3.3
@@ -66,13 +67,50 @@ case "$ZIG_HOST_TARGET" in
   *) export DEVKIT_EXT=tar.xz EXE_SUFFIX=;;
 esac
 
+export ZIGROOT=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
+export ZIGROOTBIN=$ZIGROOT/bin
+
+# The devkit for this host, from the zig-devkits submodule's devkits.json: for
+# each host, either zig-devkits' mirror of upstream's devkit or a devkit built
+# there for a host upstream doesn't publish (x86_64-macos). A built host takes
+# that build; any other takes UPSTREAM_DEVKIT_VERSION, from the mirror when it
+# holds that version, else from ziglang.org. Without the submodule checked out,
+# every host takes upstream's from ziglang.org. DEVKIT_VERSION and DEVKIT_URL
+# in the environment override the choice, to try another devkit.
+export DEVKITS_JSON=$ZIGROOT/zig-devkits/devkits.json
+# one string field of a host's entry in devkits.json (jq isn't on every host)
+devkits-json-field () {
+  [ -f "$DEVKITS_JSON" ] || return 0
+  awk -v host="\"$1\": {" -v key="\"$2\": \"" '
+    { sub(/\r$/, "") }
+    index($0, host) { inside = 1; next }
+    inside && /^ *}/ { exit }
+    inside && index($0, key) { sub(/^[^:]*: *"/, ""); sub(/",?$/, ""); print; exit }
+  ' "$DEVKITS_JSON"
+}
+# what an earlier sourcing exported for another host is no override
+if [ -n "${DEVKIT_HOST:-}" ] && [ "$DEVKIT_HOST" != "$ZIG_HOST_TARGET" ]; then
+  unset DEVKIT_VERSION DEVKIT_URL DEVKIT_SHA256
+fi
+if [ -z "${DEVKIT_VERSION:-}" ]; then
+  DEVKIT_VERSION=$UPSTREAM_DEVKIT_VERSION
+  if [ "$(devkits-json-field "$ZIG_HOST_TARGET" source)" = built ]; then
+    DEVKIT_VERSION=$(devkits-json-field "$ZIG_HOST_TARGET" version)
+  fi
+fi
+if [ -z "${DEVKIT_URL:-}" ] && [ "$(devkits-json-field "$ZIG_HOST_TARGET" version)" = "$DEVKIT_VERSION" ]; then
+  DEVKIT_URL=$(devkits-json-field "$ZIG_HOST_TARGET" url)
+  DEVKIT_SHA256=$(devkits-json-field "$ZIG_HOST_TARGET" sha256)
+fi
+export DEVKIT_HOST=$ZIG_HOST_TARGET
+export DEVKIT_VERSION
+export DEVKIT_URL=${DEVKIT_URL:-https://ziglang.org/deps/zig+llvm+lld+clang-$ZIG_HOST_TARGET-$DEVKIT_VERSION.$DEVKIT_EXT}
+export DEVKIT_SHA256=${DEVKIT_SHA256:-}
+
 # precompute paths and file names
 export DEVKIT_LONGNAME=zig+llvm+lld+clang-$ZIG_HOST_TARGET-$DEVKIT_VERSION
 export DEVKIT_NAME=devkit-$ZIG_HOST_TARGET-$DEVKIT_VERSION
 export CMAKE_NAME=cmake-$CMAKE_VERSION
-
-export ZIGROOT=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)
-export ZIGROOTBIN=$ZIGROOT/bin
 
 export DOWNLOADS=$ZIGROOT/downloads
 export DEVKIT=$ZIGROOT/$DEVKIT_NAME

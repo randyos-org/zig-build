@@ -2,7 +2,8 @@
 #cSpell:enableCompoundWords
 # Prepare a fresh (CI) clone of zig-build for building: fetch the pinned zig-src
 # commit without file history blobs, plus upstream's release tags so that
-# `git describe` produces proper dev version strings (forks may lack tags).
+# `git describe` produces proper dev version strings (forks may lack tags), and
+# the pinned zig-devkits, whose devkits.json names each host's devkit.
 # Run from the zig-build root. Local checkouts get the tags from build-stage3.sh.
 # ZIG_SRC_URL, if set, replaces .gitmodules' zig-src URL for both the commit and
 # the tags (e.g. the GitHub mirror https://github.com/randyos-org/zig.git, which
@@ -18,4 +19,6 @@ if [ -n "${ZIG_SRC_URL:-}" ]; then
 fi
 retry git -C "$ZIGROOT" submodule update --init --filter=blob:none zig-src || exit 1
 retry fetch-upstream-tags "$ZIG_SRC" "$tags_url" || exit 1
+# its devkits.json picks the devkit for each host (common.sh)
+retry git -C "$ZIGROOT" submodule update --init --filter=blob:none zig-devkits || exit 1
 echo "zig-src at $(git -C "$ZIG_SRC" describe --match '*.*.*' --tags --abbrev=9)"

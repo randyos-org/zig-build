@@ -8,7 +8,7 @@ Everything runs from a bash shell: Git Bash/MSYS on Windows, or any Linux, macOS
 
 This follows the upstream [build-from-source](https://codeberg.org/ziglang/zig#building-from-source-on-windows) and [contributing](https://codeberg.org/ziglang/zig#editing-source-code) workflow (a release `stage3` plus a debug `stage4` built from it), except that CMake and Ninja are replaced by the Zig build system:
 
-1. **Devkit** (`build-devkit.sh`): download the upstream `zig+llvm+lld+clang` devkit for the host (`DEVKIT_VERSION` in `common.sh`) into `devkit-<triple>-<version>/`.
+1. **Devkit** (`build-devkit.sh`): download the `zig+llvm+lld+clang` devkit for the host into `devkit-<triple>-<version>/`. `devkits.json` in the `zig-devkits` submodule picks it: upstream's devkit at `UPSTREAM_DEVKIT_VERSION` (`common.sh`) from zig-devkits' mirror, checked against its sha256, or, for a host upstream doesn't publish (x86_64-macos), zig-devkits' build. Without the submodule, it downloads upstream's from `ziglang.org/deps`.
 2. **Stage 1** (`build.zig`, `build-src/`): the devkit's zig builds `wasm2c`, converts `zig-src/stage1/zig1.wasm` to `zig1`, uses `zig1` to generate `zig2.c` and `compiler_rt.c`, and links `zig2` against the devkit's LLVM. This replicates the bootstrap section of `zig-src/CMakeLists.txt`. Output: `bin/zig1`, `bin/zig2`.
 3. **Stage 3** (`build-stage3.sh`): `zig2` builds a ReleaseFast zig from `zig-src` with `-Dstatic-llvm` into `bin/stage3/`, then runs a quick test pass.
 4. **Stage 4** (`build-stage4-debug.sh`): stage3 builds a debug zig into `bin/stage4/`, then runs tests. Rerun this after editing zig-src.
@@ -28,7 +28,7 @@ Every stage targets the devkit's triple (`ZIG_HOST_TARGET`, autodetected: `x86_6
 ./build-zls.sh
 ```
 
-The `zls` fork carries no release tags, and the `zig-src` fork's can lag upstream's, so `build-stage3.sh` and `build-zls.sh` first fetch upstream tags into their submodule. Without the tags, `git describe` fails, and the version string loses its `-dev.N+hash` suffix. If the fetch fails (when offline, for example), the scripts warn and build anyway.
+The `zls` fork carries no release tags, and the `zig-src` fork's can lag upstream, so `build-stage3.sh` and `build-zls.sh` first fetch upstream tags into their submodule. Without the tags, `git describe` fails, and the version string loses its `-dev.N+hash` suffix. If the fetch fails (when offline, for example), the scripts warn and build anyway.
 
 Extra arguments to `build-stage3.sh` and `build-stage4-debug.sh` are passed to `zig build` (e.g. `-Dllvm-has-m68k` for a devkit built with that experimental target, or `-fincremental --watch` for stage4).
 
@@ -38,6 +38,7 @@ Settings, read from the environment, with defaults in `common.sh`:
 | --- | --- | --- |
 | `ZIG_HOST_TARGET` | autodetected | Triple of the host toolchain and devkit |
 | `ZIG_HOST_CPU` | `native` | Use `baseline` for binaries that leave this machine (CI) |
+| `DEVKIT_VERSION`, `DEVKIT_URL` | from `devkits.json` | Try another devkit; one already unpacked as `devkit-<triple>-<version>/` needs no URL |
 | `STAGE3_TESTS` | `1` | `0` skips stage3's tests |
 | `FULLTESTFLAG` | `0` | `1` runs the full `zig build test` instead of `test-modules` |
 
@@ -55,9 +56,9 @@ These scripts need a Linux, macOS or BSD host; Windows is not supported. They al
 | `build-zig-cross.sh <target> <cpu>` | Cross-compile zig-src against that LLVM. Output: `build/cross/zig-<target>-<cpu>/`. |
 | `test-zig-cross.sh <target> <cpu>` | Smoke-test the cross zig under qemu user-mode emulation: `zig version`, plus building and running Zig and C hello worlds. |
 | `cross-manifest.sh` | Print the content keys (`host`, `llvm`, `zig`) or a `manifest.json` for a target. |
-| `ci-sources.sh` | Prepare a fresh CI clone: fetch the pinned zig-src without blobs, plus upstream tags for `git describe`. Set `ZIG_SRC_URL` to fetch both from elsewhere, such as the GitHub mirror `https://github.com/randyos-org/zig.git`, as the GitHub workflows do. |
+| `ci-sources.sh` | Prepare a fresh CI clone: fetch the pinned zig-src without blobs, plus upstream tags for `git describe`, and the pinned `zig-devkits` for `devkits.json`. Set `ZIG_SRC_URL` to fetch both from elsewhere, such as the GitHub mirror `https://github.com/randyos-org/zig.git`, as the GitHub workflows do. |
 
-When zig-src moves to a new LLVM major version, bump `ZIG_BOOTSTRAP_COMMIT` in `cross-sources.sh` together with `DEVKIT_VERSION` in `common.sh`. `cross-sources.sh` fetches zig-bootstrap from its GitHub mirror, [randyos-org/zig-bootstrap](https://github.com/randyos-org/zig-bootstrap) (override with `ZIG_BOOTSTRAP_URL`); if a new pin isn't there yet, run zig-devkits **Mirror zig-bootstrap** workflow by hand.
+When zig-src moves to a new LLVM major version, bump `ZIG_BOOTSTRAP_COMMIT` in `cross-sources.sh` together with `UPSTREAM_DEVKIT_VERSION` in `common.sh` and the `zig-devkits` pin, once its mirror holds that version. `cross-sources.sh` fetches zig-bootstrap from its GitHub mirror, [randyos-org/zig-bootstrap](https://github.com/randyos-org/zig-bootstrap) (override with `ZIG_BOOTSTRAP_URL`); if a new pin isn't there yet, run zig-devkits **Mirror zig-bootstrap** workflow by hand.
 
 ### CI (powerzig)
 
@@ -82,7 +83,7 @@ The `zig-toolchain` submodule, [randyos-org/zig-toolchain](https://github.com/ra
 
 ### CI (zig-devkits)
 
-The `zig-devkits` submodule, [randyos-org/zig-devkits](https://github.com/randyos-org/zig-devkits), is the home for devkits: it mirrors upstream devkits from `ziglang.org/deps` as releases, and builds the ones upstream doesn't publish (x86_64-macos) with this repo's cross scripts. `devkits.json` there names the devkit for each host. Its workflows fetch this repo and zig-src from the GitHub mirrors, as zig-toolchain does.
+The `zig-devkits` submodule, [randyos-org/zig-devkits](https://github.com/randyos-org/zig-devkits), is the home for devkits: it mirrors upstream devkits from `ziglang.org/deps` as releases, and builds the ones upstream doesn't publish (x86_64-macos) with this repo's cross scripts. `devkits.json` there names the devkit for each host, and `common.sh` reads it at the pinned commit, so a host takes a newer zig-devkits build only when the pin moves (which changes that host's `host` key, so zig-toolchain rebuilds it). Its workflows fetch this repo and zig-src from the GitHub mirrors, as zig-toolchain does.
 
 ## Mirrors
 
